@@ -21,7 +21,7 @@ namespace c4_model_design
             Model model = workspace.Model;
 
             SoftwareSystem InventorySystem = model.AddSoftwareSystem("Sistema de Inventario", "Permite a los trabajores de la microempresa gestionar el inventario de productos");
-            SoftwareSystem PredictiveModel = model.AddSoftwareSystem("Modelo ML", "Modelo de Deep Learning para la predicción de compra de materia prima");
+            SoftwareSystem PredictiveModel = model.AddSoftwareSystem("Modelo Deep Learning", "Modelo de Deep Learning para la predicción de compra de materia prima");
 
             Person worker = model.AddPerson("Trabajador", "Trabajador de la microempresa");
             Person manager = model.AddPerson("Gerente", "Gerente de la microempresa");
@@ -58,7 +58,7 @@ namespace c4_model_design
             Container predictionBoundedContext = InventorySystem.AddContainer("Prediction Bounded Context", "Bounded Context que permite el manejo de las predicciones de inventario", "");
             Container materialBoundedContext = InventorySystem.AddContainer("Material Bounded Context", "Bounded Context que gestiona los materiales del inventario", "");
             Container managerBoundedContext = InventorySystem.AddContainer("Manager Bounded Context", "Bounded Context que permite registrar los encargados", "");
-            Container userBoundedContext = InventorySystem.AddContainer("User Bounded Context", "Bounded Context que permite registrar a los trabajadores", "");
+            Container userBoundedContext = InventorySystem.AddContainer("Worker Bounded Context", "Bounded Context que permite registrar a los trabajadores", "");
             Container productBoundedContext = InventorySystem.AddContainer("Product Bounded Context", "Bounded Context que permite registrar los productos", "");
 
             Container dataBase = InventorySystem.AddContainer("Data Base", "Permite el almacenamiento de información", "SQL Server");
@@ -105,7 +105,6 @@ namespace c4_model_design
             styles.Add(new ElementStyle("DataBase") { Background = "#E00000", Color = "#ffffff", Shape = Shape.Cylinder });
 
             ContainerView containerView = viewSet.CreateContainerView(InventorySystem, "Contenedor", "Diagrama de contenedores");
-            contextView.PaperSize = PaperSize.A3_Landscape;
             containerView.AddAllElements();;
 
             // ==================== Diagrama de componentes Prediction BC ====================
@@ -119,7 +118,9 @@ namespace c4_model_design
             predictionService.Uses(predictionRepository, "Llamada a los métodos de persistencia del repository");
             predictionDomain.Uses(predictionRepository, "Conforma");
             predictionRepository.Uses(dataBase, "Lee desde y Escribe a");
-            
+
+            predictionService.Uses(PredictiveModel, "Usa el modelo predictivo");
+
             //Tags
             predictionController.AddTags("appointmentController");
             predictionService.AddTags("appointmentService");
@@ -135,6 +136,7 @@ namespace c4_model_design
             componentView.PaperSize = PaperSize.A5_Landscape;
             componentView.Add(predictionBoundedContext);
             componentView.Add(netApi);
+            componentView.Add(PredictiveModel);
             componentView.Add(singlePageApplication);
             componentView.Add(dataBase);
             componentView.AddAllComponents();
@@ -170,7 +172,39 @@ namespace c4_model_design
             componentView2.Add(singlePageApplication);
             componentView2.Add(dataBase);
             componentView2.AddAllComponents();
-            
+
+            // ==================== Diagrama de componentes Material BC ====================
+
+            Component productController = productBoundedContext.AddComponent("Product Controller", "Controlador que provee las respuestas de la Rest API para la gestion de inventario", "");
+            Component productService = productBoundedContext.AddComponent("Product Service", "Provee los métodos para la gestión de inventario", "");
+            Component productRepository = productBoundedContext.AddComponent("Product Repository", "Repositorio que provee los métodos para la persistencia de los datos de los productos.", "");
+            Component productDomain = productBoundedContext.AddComponent("Product Domain Model", "Contiene todas las entidades del Bounded Context", "");
+
+            netApi.Uses(productController, "Llamada API");
+            productController.Uses(productService, "Llamada a los métodos del service");
+            productService.Uses(productRepository, "Llamada a los métodos de persistencia del repository");
+            productDomain.Uses(productRepository, "Conforma");
+            productRepository.Uses(dataBase, "Lee desde y Escribe a");
+
+            //Tags
+            productController.AddTags("productController");
+            productService.AddTags("productService");
+            productRepository.AddTags("productRepository");
+            productDomain.AddTags("productDomain");
+
+            styles.Add(new ElementStyle("productController") { Background = "#760000", Color = "#ffffff", Shape = Shape.Component });
+            styles.Add(new ElementStyle("productService") { Background = "#760000", Color = "#ffffff", Shape = Shape.Component });
+            styles.Add(new ElementStyle("productRepository") { Background = "#760000", Color = "#ffffff", Shape = Shape.Component });
+            styles.Add(new ElementStyle("productDomain") { Background = "#760000", Color = "#ffffff", Shape = Shape.Component });
+
+            ComponentView componentViewProduct = viewSet.CreateComponentView(productBoundedContext, "ProductComponent", "Component Diagram");
+            componentViewProduct.PaperSize = PaperSize.A5_Landscape;
+            componentViewProduct.Add(productBoundedContext);
+            componentViewProduct.Add(netApi);
+            componentViewProduct.Add(singlePageApplication);
+            componentViewProduct.Add(dataBase);
+            componentViewProduct.AddAllComponents();
+
             //Diagrama de componentes Technical BC
             Component technicalController = managerBoundedContext.AddComponent("Manager Controller", "Controlador que provee las respuestas de la Rest API para la gestion de encargados");
             Component technicalService = managerBoundedContext.AddComponent("Manager Service", "Provee los métodos para la inscripción y gestión de encargados");
@@ -199,7 +233,7 @@ namespace c4_model_design
             styles.Add(new ElementStyle("technicalValidation") {Background = "#6D4C41", Color = "#ffffff", Shape = Shape.Component});
             
             ComponentView componentView3 = viewSet.CreateComponentView(managerBoundedContext, "Components3", "Component Diagram");
-            componentView3.PaperSize = PaperSize.A4_Landscape;
+            componentView3.PaperSize = PaperSize.A5_Landscape;
             componentView3.Add(managerBoundedContext);
             componentView3.Add(singlePageApplication);
             componentView3.Add(netApi);
@@ -236,7 +270,7 @@ namespace c4_model_design
             ComponentView componentView4 = viewSet.CreateComponentView(userBoundedContext, "Components4", "Component Diagram");
             componentView4.PaperSize = PaperSize.A4_Landscape;
 
-            contextView.PaperSize = PaperSize.A5_Landscape;
+            contextView.PaperSize = PaperSize.A5_Portrait;
             containerView.PaperSize = PaperSize.A4_Landscape;
 
             componentView4.Add(userBoundedContext);
